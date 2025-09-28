@@ -13,6 +13,10 @@ public:
   explicit ByteStream( uint64_t capacity );
 
   // Helper functions (provided) to access the ByteStream's Reader and Writer interfaces
+  // 这四个函数是关键：他们能让ByteStream对象被当作Writer或Reader来对待，进而能调用此两个类的成员函数了
+  // 且读写两端对应的是同一块buffer。这样一个ByteStream对象就能实现这个管道功能
+
+  // 另外定义两个类Reader和Writer的目的是把读写操作隔离分开，他们继承ByteStream是为了共享数据
   Reader& reader();
   const Reader& reader() const;
   Writer& writer();
@@ -24,6 +28,17 @@ public:
 protected:
   // Please add any additional state to the ByteStream here, and not to the Writer and Reader interfaces.
   uint64_t capacity_;
+  std::string buffer;
+  uint64_t pos2read; // position to read，数据区的第一个位置, 初始化为0，和之后读完的情况统一
+  uint64_t pos2write; // position to write，无数据区的第一个位置
+  // 由于当写满了或读完了时，都是 pos2read == pos2write，故增加以下两个变量来区分
+  bool is_full;
+  bool is_empty;
+
+  uint64_t total_pushed;
+  uint64_t total_poped;
+
+  bool writer_end; // no more writing
   bool error_ {};
 };
 
