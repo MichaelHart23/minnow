@@ -51,4 +51,5 @@ private:
   std::map<uint64_t, std::pair<std::string, bool>> reserved_data;
 
   bool insert_data(uint64_t first_index, std::string data, bool is_last_substring); //data是否全部被写入
+  void new_insert(uint64_t first_index, std::string data, bool is_last_substring);
 };
