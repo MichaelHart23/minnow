@@ -16,9 +16,9 @@ ByteStream::ByteStream( uint64_t capacity )
   , error_(false)
 {}
 // Push data to stream, but only as much as available capacity allows.
-void Writer::push( string data )
+uint64_t Writer::push( string data )
 {
-  if(is_closed()) return;
+  if(is_closed()) return 0;
   uint64_t size_to_be_written = available_capacity();
 
   if ( size_to_be_written > data.size() ) {
@@ -34,6 +34,7 @@ void Writer::push( string data )
   total_pushed += size_to_be_written;
   if ( data.size() != 0 )
     is_empty = false;
+  return size_to_be_written;
 }
 
 // Signal that the stream has reached its ending. Nothing more will be written.

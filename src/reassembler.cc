@@ -70,26 +70,25 @@ bool Reassembler::insert_data(uint64_t first_index, std::string data, bool is_la
 }
 
 void Reassembler::new_insert( uint64_t first_index, std::string data, bool is_last_substring ) {
+  if(output_.writer().available_capacity() == 0) return;
   if(first_index < index) {
     if(first_index + data.size() <= index) return;
     uint64_t overlap = index - first_index;
     uint64_t remain_size = data.size() - overlap;
-    index += std::min(remain_size, output_.writer().available_capacity());
-    output_.writer().push(data.substr(overlap, remain_size));
+    index += output_.writer().push(data.substr(overlap, remain_size));
     if(is_last_substring) {
-      //code to be written here
       output_.writer().close();
     }
   }
   else if(first_index == index) {
-    index += std::min(data.size(), output_.writer().available_capacity());
-    output_.writer().push(data);
-    if(is_last_substring) {
-      //code to be written here
+    bool is_within_capacity = data.size() <=  output_.writer().available_capacity();
+    index += output_.writer().push(data);
+    if(is_last_substring && is_within_capacity) {
       output_.writer().close();
     }
   }
   else {
+    if(first_index > index + output_.writer().available_capacity()) return;
     uint64_t gap = first_index - index;
     uint64_t empty_space = output_.writer().available_capacity();
     if(gap + data.size() > empty_space) {
@@ -97,7 +96,7 @@ void Reassembler::new_insert( uint64_t first_index, std::string data, bool is_la
       reserved_data[first_index] = std::make_pair(data.substr(0, within_size), false);
     }
     else {
-      reserved_data[first_index] = std::make_pair(data.substr(0, data.size()), is_last_substring);
+      reserved_data[first_index] = std::make_pair(data, is_last_substring);
     }
   }
 }
