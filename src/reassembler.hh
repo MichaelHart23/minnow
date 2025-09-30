@@ -1,12 +1,16 @@
 #pragma once
 
 #include "byte_stream.hh"
+#include <list>
+#include <map>
 
 class Reassembler
 {
 public:
   // Construct Reassembler to write into given ByteStream.
-  explicit Reassembler( ByteStream&& output ) : output_( std::move( output ) ) {}
+  explicit Reassembler( ByteStream&& output ) : output_( std::move( output ) ), index(0), 
+                                                reserved_data()
+   {}
 
   /*
    * Insert a new substring to be reassembled into a ByteStream.
@@ -43,4 +47,8 @@ public:
 
 private:
   ByteStream output_;
+  uint64_t index;     //指向下一个要buffer的byte(尚未buffered)，初始化为0
+  std::map<uint64_t, std::pair<std::string, bool>> reserved_data;
+
+  bool insert_data(uint64_t first_index, std::string data, bool is_last_substring); //data是否全部被写入
 };
