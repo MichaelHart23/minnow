@@ -1,18 +1,22 @@
 #pragma once
 
 #include "byte_stream.hh"
-#include <vector>
 #include <map>
+#include <vector>
 
 class Reassembler
 {
 public:
   // Construct Reassembler to write into given ByteStream.
-  explicit Reassembler( ByteStream&& output ) : 
-  output_( std::move( output ) ), index(0),
-  pending_data(output.writer().available_capacity()), window_head(0), 
-  last_ac(output.writer().available_capacity()), has_last(false), intervals()
-   {}
+  explicit Reassembler( ByteStream&& output )
+    : output_( std::move( output ) )
+    , index( 0 )
+    , pending_data( output.writer().available_capacity() )
+    , window_head( 0 )
+    , last_ac( output.writer().available_capacity() )
+    , has_last( false )
+    , intervals()
+  {}
 
   /*
    * Insert a new substring to be reassembled into a ByteStream.
@@ -49,14 +53,14 @@ public:
 
 private:
   ByteStream output_;
-  uint64_t index;     //指向下一个要buffer的byte(尚未buffered)，初始化为0
+  uint64_t index; // 指向下一个要buffer的byte(尚未buffered)，初始化为0
   std::vector<char> pending_data;
-  uint64_t window_head;     //等于读取了多少数据
-  uint64_t last_ac;         //last available capacity, 用于更新window head
-  bool has_last;           //当前reserve的数据中有无last_string
-  std::multimap<uint64_t, uint64_t> intervals; //pendiing data的数据区间
+  uint64_t window_head;                        // 等于读取了多少数据
+  uint64_t last_ac;                            // last available capacity, 用于更新window head
+  bool has_last;                               // 当前reserve的数据中有无last_string
+  std::multimap<uint64_t, uint64_t> intervals; // pendiing data的数据区间
 
-  void insert_data(uint64_t first_index, std::string data, bool is_last_substring);
-  void reserve_data(uint64_t first_index, std::string data, bool is_last_substring);
+  void insert_data( uint64_t first_index, std::string data, bool is_last_substring );
+  void reserve_data( uint64_t first_index, std::string data, bool is_last_substring );
   void merge_intervals();
 };
