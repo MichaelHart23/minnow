@@ -8,7 +8,7 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
 {
   uint64_t ac = output_.writer().available_capacity();
   window_head += ac - last_ac;
-  insert_data( first_index, std::move(data), is_last_substring );
+  insert_data( first_index, std::move( data ), is_last_substring );
   uint64_t vector_size = pending_data.size();
   while ( !intervals.empty() && intervals.begin()->first <= index ) {
     auto it = intervals.begin();
@@ -17,7 +17,7 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
     for ( uint64_t i = 0; i < interval_size; i++ ) {
       s[i] = pending_data[( it->first + i ) % vector_size];
     }
-    insert_data( it->first, std::move(s), ( std::next( it ) == intervals.end() && has_last ) );
+    insert_data( it->first, std::move( s ), ( std::next( it ) == intervals.end() && has_last ) );
     intervals.erase( it );
   }
   last_ac = ac;
