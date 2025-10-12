@@ -50,6 +50,7 @@ public:
 
   // Access output stream writer, but const-only (can't write from outside)
   const Writer& writer() const { return output_.writer(); }
+  void set_error() {output_.set_error();}
 
 private:
   ByteStream output_;
