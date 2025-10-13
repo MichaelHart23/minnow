@@ -29,16 +29,11 @@ protected:
   // Please add any additional state to the ByteStream here, and not to the Writer and Reader interfaces.
   uint64_t capacity_;
   std::string buffer;
-  uint64_t pos2read; // position to read，数据区的第一个位置, 初始化为0，和之后读完的情况统一
-  uint64_t pos2write; // position to write，无数据区的第一个位置
-  // 由于当写满了或读完了时，都是 pos2read == pos2write，故增加以下两个变量来区分
-  bool is_full;
-  bool is_empty;
+  uint64_t num_write {};
+  uint64_t num_read {};
 
-  uint64_t total_pushed;
-  uint64_t total_poped;
 
-  bool writer_end; // no more writing
+  bool writer_end {}; // no more writing
   bool error_ {};
 };
 

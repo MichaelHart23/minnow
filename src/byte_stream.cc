@@ -6,35 +6,15 @@ using namespace std;
 ByteStream::ByteStream( uint64_t capacity )
   : capacity_( capacity )
   , buffer( capacity, 'a' )
-  , pos2read( 0 )
-  , pos2write( 0 )
-  , is_full( false )
-  , is_empty( true )
-  , total_pushed( 0 )
-  , total_poped( 0 )
-  , writer_end( false )
-  , error_( false )
 {}
 // Push data to stream, but only as much as available capacity allows.
 uint64_t Writer::push( string data )
 {
-  if ( is_closed() )
-    return 0;
-  uint64_t size_to_be_written = available_capacity();
-
-  if ( size_to_be_written > data.size() ) {
-    size_to_be_written = data.size();
-  } else
-    is_full = true; // 剩余容量会全被占满，提前设置is_full，否则available_capacity()不能正确工作
-  // 若是要写入的数据大于剩余容量，做截断处理
-
+  if ( is_closed() ) return 0;
+  uint64_t size_to_be_written = available_capacity() >= data.size() ? data.size() : available_capacity();// 若是要写入的数据大于剩余容量，做截断处理
   for ( uint64_t i = 0; i < size_to_be_written; i++ ) {
-    buffer[pos2write] = data[i];
-    pos2write = ( pos2write + 1 ) % capacity_;
+    buffer[num_write++ % capacity_] = data[i];
   }
-  total_pushed += size_to_be_written;
-  if ( !data.empty() )
-    is_empty = false;
   return size_to_be_written;
 }
 
@@ -53,23 +33,13 @@ bool Writer::is_closed() const
 // How many bytes can be pushed to the stream right now?
 uint64_t Writer::available_capacity() const
 {
-  if ( pos2read < pos2write ) {
-    return capacity_ - ( pos2write - pos2read );
-  } else if ( pos2read > pos2write ) {
-    return pos2read - pos2write;
-  } else {
-    if ( is_full )
-      return 0;
-    if ( is_empty )
-      return capacity_;
-  }
-  return UINT64_MAX; // 不会被执行
+  return capacity_ - (num_write - num_read);
 }
 
 // Total number of bytes cumulatively pushed to the stream
 uint64_t Writer::bytes_pushed() const
 {
-  return total_pushed;
+  return num_write;
 }
 
 // Peek at the next bytes in the buffer -- ideally as many as possible.
@@ -78,9 +48,10 @@ uint64_t Writer::bytes_pushed() const
 // the caller to do a lot of extra work.
 string_view Reader::peek() const
 {
-  if ( is_empty )
+  if(num_write == num_read) 
     return "";
   std::string_view sv {};
+  uint64_t pos2write = num_write % capacity_, pos2read = num_read % capacity_;
   if ( pos2write <= pos2read )
     sv = std::string_view( buffer.data() + pos2read, capacity_ - pos2read );
   else
@@ -91,43 +62,23 @@ string_view Reader::peek() const
 // Remove `len` bytes from the buffer.
 void Reader::pop( uint64_t len )
 {
-  uint64_t size_to_be_poped = bytes_buffered();
-  if ( size_to_be_poped > len )
-    size_to_be_poped = len;
-  else
-    is_empty = true; // 所有数据被全部pop，提前设置is_empty，否则bytes_buffered()不会正常运行
-  pos2read = ( pos2read + size_to_be_poped ) % capacity_;
-  total_poped += size_to_be_poped;
-  if ( len > 0 )
-    is_full = false;
+  uint64_t size_to_be_poped = bytes_buffered() >= len ? len : bytes_buffered();
+  num_read += size_to_be_poped;
 }
 
 // Is the stream finished (closed and fully popped)?
 bool Reader::is_finished() const
 {
-  if ( writer_end && is_empty ) { // 不会再写且读完了
-    return true;
-  }
-  return false;
+  return writer_end && num_write == num_read;  // 不会再写且读完了
 }
 // Number of bytes currently buffered (pushed and not popped)
 uint64_t Reader::bytes_buffered() const
 {
-  if ( pos2read < pos2write ) {
-    return pos2write - pos2read;
-  } else if ( pos2read > pos2write ) {
-    return capacity_ - ( pos2read - pos2write );
-  } else {
-    if ( is_full )
-      return capacity_;
-    if ( is_empty )
-      return 0;
-  }
-  return UINT64_MAX; // 不会被执行
+    return num_write - num_read;
 }
 
 // Total number of bytes cumulatively popped from stream
 uint64_t Reader::bytes_popped() const
 {
-  return total_poped;
+  return num_read;
 }
