@@ -1,5 +1,5 @@
 #include "debug.hh"
-#include "socket.hh"
+#include "tcp_minnow_socket.hh"
 
 #include <cstdlib>
 #include <iostream>
@@ -12,7 +12,7 @@ namespace {
 void get_URL( const string& host, const string& path )
 {
   cerr << "Function called: get_URL(" << host << ", " << path << ")\n";
-  TCPSocket ts;
+  CS144TCPSocket ts;
   ts.connect( Address( host, "http" ) );
   ts.write( "GET " + path + " HTTP/1.1\r\n" );
   ts.write( "Host: " + host + "\r\n" );
@@ -23,6 +23,7 @@ void get_URL( const string& host, const string& path )
     cout << s;
   }
   ts.close();
+  ts.wait_until_closed();
 }
 } // namespace
 

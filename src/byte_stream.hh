@@ -40,7 +40,7 @@ protected:
 class Writer : public ByteStream
 {
 public:
-  uint64_t push( std::string data ); // Push data to stream, but only as much as available capacity allows.
+  uint64_t push( const std::string& data ); // Push data to stream, but only as much as available capacity allows.
   void close();                      // Signal that the stream has reached its ending. Nothing more will be written.
 
   bool is_closed() const;              // Has the stream been closed?
@@ -52,7 +52,7 @@ class Reader : public ByteStream
 {
 public:
   std::string_view peek() const; // Peek at the next bytes in the buffer -- ideally as many as possible.
-  void pop( uint64_t len );      // Remove `len` bytes from the buffer.
+  uint64_t pop( uint64_t len );      // Remove `len` bytes from the buffer.
 
   bool is_finished() const;        // Is the stream finished (closed and fully popped)?
   uint64_t bytes_buffered() const; // Number of bytes currently buffered (pushed and not popped)

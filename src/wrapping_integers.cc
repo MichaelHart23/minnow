@@ -8,6 +8,7 @@ Wrap32 Wrap32::wrap( uint64_t n, Wrap32 zero_point )
   return zero_point + static_cast<uint32_t>( n );
 }
 
+//在实际应用中，由于receiver的window size用uint16_t表示，所以checkpoint和实际绝对序号来说，差距不大
 uint64_t Wrap32::unwrap( Wrap32 zero_point, uint64_t checkpoint ) const
 {
   const uint64_t wrap = 1ul << 32;
@@ -17,7 +18,7 @@ uint64_t Wrap32::unwrap( Wrap32 zero_point, uint64_t checkpoint ) const
   uint64_t candidate = remainder + n * wrap;
   if ( candidate + wrap - checkpoint < wrap / 2 ) {
     candidate += wrap;
-  } else if ( candidate > wrap && checkpoint - ( candidate - wrap ) <= wrap / 2 ) {
+  } else if ( candidate > wrap && checkpoint - ( candidate - wrap ) <= wrap / 2 ) { //防止出现小于0的结果
     candidate -= wrap;
   }
 

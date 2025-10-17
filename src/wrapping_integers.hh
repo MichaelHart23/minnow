@@ -27,6 +27,8 @@ public:
 
   Wrap32 operator+( uint32_t n ) const { return Wrap32 { raw_value_ + n }; }
   bool operator==( const Wrap32& other ) const { return raw_value_ == other.raw_value_; }
+  //自己加的运算符重载。1 加const才能过编译；2 行为不对，比大小应该比unwrap后的absolute sequence number
+  bool operator> (const Wrap32 n) const {return raw_value_ > n.raw_value_; }  
 
 protected:
   uint32_t raw_value_ {};

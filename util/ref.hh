@@ -11,6 +11,12 @@
 template<typename T>
 class Ref
 {
+ /*
+  *  若在wrap32类里加了一些运算符重载，则下面两句不注释就会过不了编译，
+  *  因为改变了Wrap32的公共接口了
+  *  所以要么把下面两句注释掉，要么把wrap32里我加的运算符重载删掉
+  *  但似乎在函数后面加上const关键字就没问题
+  */
   static_assert( std::is_nothrow_move_constructible_v<T> );
   static_assert( std::is_nothrow_move_assignable_v<T> );
 

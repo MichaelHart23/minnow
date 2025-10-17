@@ -5,15 +5,19 @@ using namespace std;
 
 ByteStream::ByteStream( uint64_t capacity )
   : capacity_( capacity )
-  , buffer( capacity, 'a' )
+  , buffer( capacity, 0 )
 {}
 // Push data to stream, but only as much as available capacity allows.
-uint64_t Writer::push( string data )
+uint64_t Writer::push( const string& data )
 {
   if ( is_closed() ) return 0;
-  uint64_t size_to_be_written = available_capacity() >= data.size() ? data.size() : available_capacity();// 若是要写入的数据大于剩余容量，做截断处理
+  uint64_t size_to_be_written = std::min(data.size(), available_capacity());// 若是要写入的数据大于剩余容量，做截断处理
+  //避免每次写入都取模
+  uint64_t pos2write = num_write % capacity_;
   for ( uint64_t i = 0; i < size_to_be_written; i++ ) {
-    buffer[num_write++ % capacity_] = data[i];
+    buffer[pos2write++] = data[i];
+    num_write++;
+    if(pos2write >= capacity_) pos2write = 0;
   }
   return size_to_be_written;
 }
@@ -49,7 +53,7 @@ uint64_t Writer::bytes_pushed() const
 string_view Reader::peek() const
 {
   if(num_write == num_read) 
-    return "";
+    return std::string_view(); //empty
   std::string_view sv {};
   uint64_t pos2write = num_write % capacity_, pos2read = num_read % capacity_;
   if ( pos2write <= pos2read )
@@ -60,10 +64,11 @@ string_view Reader::peek() const
 }
 
 // Remove `len` bytes from the buffer.
-void Reader::pop( uint64_t len )
+uint64_t Reader::pop( uint64_t len )
 {
-  uint64_t size_to_be_poped = bytes_buffered() >= len ? len : bytes_buffered();
+  uint64_t size_to_be_poped = std::min(len, bytes_buffered());
   num_read += size_to_be_poped;
+  return size_to_be_poped;
 }
 
 // Is the stream finished (closed and fully popped)?
